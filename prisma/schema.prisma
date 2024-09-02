@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id           String        @id @default(uuid())
+  title        String        @db.VarChar(255)
+  createdAt    DateTime      @default(now())
+  belongsToId  String
+  belongsTo    Seeker        @relation(fields: [belongsToId], references: [id])
+  userId       String?
+  applications Application[]
+  invitations  Invitation[]
+  status       Status        @default(OPEN)
+}
+
+model User {
+  id        String   @id @default(uuid())
+  role      Role
+  email     String   @unique
+  firstName String   @db.VarChar(255)
+  lastName  String   @db.VarChar(255)
+  createdAt DateTime @default(now())
+  Seeker    Seeker[]
+  Org       Org[]
+}
+
+model Seeker {
+  id           String        @id @default(uuid())
+  posts        Post[]
+  belongsToId  String
+  belongsTo    User          @relation(fields: [belongsToId], references: [id])
+  applications Application[]
+  invitations  Invitation[]
+}
+
+model Org {
+  id           String        @id @default(uuid())
+  belongsToId  String
+  belongsTo    User          @relation(fields: [belongsToId], references: [id])
+  invitations  Invitation[]
+  applications Application[]
+}
+
+model Application {
+  id                String   @id @default(uuid())
+  belongsToOrgId    String
+  belongsToSeekerId String
+  belongsToPostId   String
+  orgId             Org      @relation(fields: [belongsToOrgId], references: [id])
+  seekerId          Seeker   @relation(fields: [belongsToSeekerId], references: [id])
+  postId            Post     @relation(fields: [belongsToPostId], references: [id])
+  createdAt         DateTime @default(now())
+}
+
+model Invitation {
+  id                String   @id @default(uuid())
+  belongsToOrgId    String
+  belongsToSeekerId String
+  belongsToPostId   String
+  orgId             Org      @relation(fields: [belongsToOrgId], references: [id])
+  seekerId          Seeker   @relation(fields: [belongsToSeekerId], references: [id])
+  postId            Post     @relation(fields: [belongsToPostId], references: [id])
+  createdAt         DateTime @default(now())
+}
+
+enum Role {
+  SEEEKER
+  ORG
+  ADMIN
+}
+
+enum Status {
+  OPEN
+  CLOSED
+  PENDING
+}

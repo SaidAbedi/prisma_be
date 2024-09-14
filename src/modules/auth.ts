@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
 
 interface TokenPayload {
     id: string
@@ -6,8 +7,17 @@ interface TokenPayload {
     lastName: string
 }
 
+export const comparePassword = async (password:string, hashedPassword:string) => {
+    return await bcrypt.compare(password, hashedPassword)
+}
+
+export const hashPassword = async (password:string) => {
+    return await bcrypt.hash(password, 10)
+}
+
 export const generateToken = (payload:TokenPayload ) => {
     const token = jwt.sign({...payload}, process.env.JWT_SECRET)
+    console.log(token)
     return token
 }
 
@@ -29,9 +39,9 @@ export const protectRoute = (req, res, next) => {
         req.user = user
         next()
     } catch (error) {
+        console.log(error)
         return res.status(401).send( 'Not valid token')
     }
 
-
-    
 }
+

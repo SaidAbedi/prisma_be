@@ -6,6 +6,7 @@ import postRouter from './api/posts';
 import userRouter from './api/users';
 import {PrismaClient  } from '@prisma/client'
 import { protectRoute } from './modules/auth';
+import { createUser, loginUser } from './handlers/user';
 const app = express();
 
 export const prisma = new PrismaClient();
@@ -21,10 +22,13 @@ app.get('/', (req:Request, res:Response) => {
 
 
 
-app.use('/api/applications', applicationsRouter);
-app.use('/api/invitations', invitationsRouter);
+app.use('/api/applications', protectRoute, applicationsRouter);
+app.use('/api/invitations', protectRoute, invitationsRouter);
 app.use('/api/posts', protectRoute, postRouter);
-app.use('/api/users', userRouter);
+app.use('/api/users', protectRoute, userRouter);
+
+app.post('/user', createUser)
+app.post('/login', loginUser)
 
 
 export default app;

@@ -1,58 +1,41 @@
-import {Router} from 'express';
-import { prisma } from '../server';
-import morgan from 'morgan';
-
+import { Router } from "express";
+import { body, check, oneOf } from "express-validator";
+import { handleInputErrors } from "../modules/middleware";
+import {
+  createPost,
+  deletePost,
+  getPost,
+  getPosts,
+  updatePost,
+} from "../handlers/post";
 
 const postRouter = Router();
 
-postRouter.get('/', async(req, res) => {
-    const posts = await prisma.post.findMany()
-    res.status(200).json(posts)
-})
+postRouter.get("/", getPosts);
 
-postRouter.get('/:id', async(req, res) => {
-    const { id } = req.params
-    const post = await prisma.post.findUnique({
-        where: {
-            id
-        }
-    })
-    return res.status(200).json(post)
+postRouter.get("/:id", getPost);
 
-})
-postRouter.post('/', (req, res) => {
-    const { title, belongsToId} = req.body
-    const post = prisma.post.create({
-        data: {
-            title,
-            belongsToId
-        }
-    })
-    return res.status(201).json(post)
-})
-postRouter.put('/:id', (req, res) => {
-    const { id } = req.params
-    const { title, belongsToId } = req.body
-    const post = prisma.post.update({
-        where: {
-            id
-        },
-        data: {
-            title,
-            belongsToId
-        }
-    })
-    return res.status(200).json(post)
-})
-postRouter.delete('/:id', (req, res) => {
-    const { id } = req.params
-    const post = prisma.post.delete({
-        where: {
-            id
-        }
-    })
-    return res.status(200).json(post)
-})
-
+postRouter.post(
+  "/",
+  body("title").isString().exists(),
+  body("description").exists(),
+  oneOf([
+    check("status").equals("OPEN"),
+    check("status").equals("CLOSED"),
+    check("status").equals("PENDING"),
+  ]),
+  body("belongsToId").exists().isString(),
+  handleInputErrors,
+  createPost
+);
+postRouter.put(
+  "/:id",
+  body("title").isString(),
+  body("title").optional(),
+  body("description").optional(),
+  handleInputErrors,
+  updatePost
+);
+postRouter.delete("/:id", deletePost);
 
 export default postRouter;

@@ -16,24 +16,30 @@ datasource db {
 model Post {
   id           String        @id @default(uuid())
   title        String        @db.VarChar(255)
+  description  String        @db.Text
   createdAt    DateTime      @default(now())
   belongsToId  String
-  belongsTo    Seeker        @relation(fields: [belongsToId], references: [id])
+  belongsTo    User          @relation(fields: [belongsToId], references: [id])
   userId       String?
   applications Application[]
   invitations  Invitation[]
   status       Status        @default(OPEN)
+  Seeker       Seeker?       @relation(fields: [seekerId], references: [id])
+  seekerId     String?
 }
 
 model User {
   id        String   @id @default(uuid())
   role      Role
   email     String   @unique
+  userName  String   @unique
+  password  String
   firstName String   @db.VarChar(255)
   lastName  String   @db.VarChar(255)
   createdAt DateTime @default(now())
   Seeker    Seeker[]
   Org       Org[]
+  Post      Post[]
 }
 
 model Seeker {
@@ -76,7 +82,7 @@ model Invitation {
 }
 
 enum Role {
-  SEEEKER
+  SEEKER
   ORG
   ADMIN
 }
